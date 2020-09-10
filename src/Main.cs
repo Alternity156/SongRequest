@@ -5,6 +5,8 @@ using System;
 using UnityEngine.Events;
 using TMPro;
 using System.Collections;
+using System.Linq;
+using Il2CppSystem;
 
 namespace AudicaModding
 {
@@ -20,6 +22,7 @@ namespace AudicaModding
         }
 
         public static bool requestFilterActive = false;
+        public static bool processQueueRunning = false;
         public static MenuState.State menuState;
         public static SongList.SongData selectedSong;
 
@@ -58,7 +61,7 @@ namespace AudicaModding
             public string user = "";
         }
 
-        public static GameObject CreateButton(GameObject buttonPrefab, string label, Action onHit, Vector3 position, Vector3 eulerRotation, Vector3 scale)
+        public static GameObject CreateButton(GameObject buttonPrefab, string label, System.Action onHit, Vector3 position, Vector3 eulerRotation, Vector3 scale)
         {
             GameObject buttonObject = UnityEngine.Object.Instantiate(buttonPrefab);
             buttonObject.transform.rotation = Quaternion.Euler(eulerRotation);
@@ -96,11 +99,14 @@ namespace AudicaModding
 
         public static void OnFilterSongRequestsShot()
         {
-            ProcessQueue();
-            requestFilterActive = true;
-            SongListControls songListControls = GameObject.FindObjectOfType<SongListControls>();
-            shootingFilterRequestsButton = true;
-            songListControls.FilterAll();
+            if (!processQueueRunning)
+            {
+                ProcessQueueCoroutine();
+                requestFilterActive = true;
+                SongListControls songListControls = GameObject.FindObjectOfType<SongListControls>();
+                shootingFilterRequestsButton = true;
+                songListControls.FilterAll();
+            }
         }
 
         public static ParsedTwitchMessage ParseTwitchMessage(string msg)
@@ -115,7 +121,7 @@ namespace AudicaModding
             parsedMsg.user = msg.Split(separator.ToCharArray())[1];
             parsedMsg.message = msg.Split(separator.ToCharArray())[2];
 
-            foreach (string str in tags.Split(tagSeparator.ToCharArray()))
+            foreach (string str in tags.Split(tagSeparator.ToCharArray()).ToList())
             {
                 if (str.Contains("badge-info="))
                 {
@@ -184,7 +190,7 @@ namespace AudicaModding
                 int totalBits = 0;
                 foreach (string str in msg.bits.Split(",".ToCharArray()))
                 {
-                    totalBits += Convert.ToInt32(str);
+                    totalBits += System.Convert.ToInt32(str);
                 }
                 return totalBits;
             }
@@ -192,17 +198,22 @@ namespace AudicaModding
 
         public static SongSelectItem SearchSong(string query)
         {
-            songSelect = GameObject.FindObjectOfType<SongSelect>();
+            //songSelect = GameObject.FindObjectOfType<SongSelect>();
             SongSelectItem song = null;
 
-            if (songSelect == null) return song;
-            
-            songs = songSelect.songSelectItems.mItems;
+            //if (songSelect == null) return song;
 
-            for (int i = 0; i < songs.Count; i++)
+            //songs = songSelect.songSelectItems.mItems;
+
+
+            MelonLogger.Log("mItems count: " + songs.Count.ToString());
+
+            
+            for (int i = 0; i < songs.Count - 1; i++)
+            //foreach (SongSelectItem ssi in songs)
             {
                 SongSelectItem currentSong = songs[i];
-
+                //SongSelectItem currentSong = ssi;
                 if (currentSong.mSongData.artist.ToLower().Contains(query.ToLower()) ||
                     currentSong.mSongData.title.ToLower().Contains(query.ToLower()) ||
                     currentSong.mSongData.songID.ToLower().Contains(query.ToLower()) ||
@@ -213,25 +224,54 @@ namespace AudicaModding
                     break;
                 }
             }
-
             return song;
         }
 
         public static IEnumerator ProcessQueueCoroutine()
         {
-            yield return new WaitForSeconds(0.5f);
+            TextMeshPro buttonText = filterSongRequestsButton.GetComponentInChildren<TextMeshPro>();
+            if (!buttonText.text.Contains("\n (Waiting to process)"))
+            {
+                buttonText.text = buttonText.text + "\n (Waiting to process)";
+            }
+            processQueueRunning = true;
+            int songCount = 0;
+            yield return new WaitForSeconds(2.0f);
+            songSelect = GameObject.FindObjectOfType<SongSelect>();
+            while (processQueueRunning)
+            {
+                if (songSelect.songSelectItems.mItems.Count > songCount)
+                {
+                    songCount = songSelect.songSelectItems.mItems.Count;
+                    yield return new WaitForSeconds(2.0f);
+                }
+                else
+                {
+                    processQueueRunning = false;
+                    songs = songSelect.songSelectItems.mItems;
+                }
+            }
+            buttonText.text = buttonText.text.Replace("\n (Waiting to process)", "");
             ProcessQueue();
+            if (requestFilterActive)
+            {
+                SongListControls songListControls = GameObject.FindObjectOfType<SongListControls>();
+                shootingFilterRequestsButton = true;
+                songListControls.FilterAll();
+            }
         }
 
         public static void ProcessQueue()
         {
-            //MelonLogger.Log(requestQueue.Count.ToString() + " in queue.");
+            MelonLogger.Log(requestQueue.Count.ToString() + " in queue.");
 
             if (requestQueue.Count != 0)
             {
-                for (int i = 0; i < requestQueue.Count; i++)
+                //for (int i = 0; i < requestQueue.Count - 1; i++)
+                foreach (string str in requestQueue.ToList())
                 {
-                    SongSelectItem result = SearchSong(requestQueue[i]);
+                    
+                    SongSelectItem result = SearchSong(str);
 
                     if (result != null)
                     {
@@ -246,6 +286,7 @@ namespace AudicaModding
                     {
                         MelonLogger.Log("Song not found");
                     }
+                    
                 }
                 requestQueue.Clear();
             }
@@ -258,11 +299,10 @@ namespace AudicaModding
                 {
                     buttonText.text = buttonText.text.Replace("=green>", "=red>");
                 }
-                else
+                else if (!buttonText.text.Contains("=red>"))
                 {
                     buttonText.text = "<color=red>" + buttonText.text + "</color>";
                 }
-                MelonLogger.Log("Red");
             }
             else
             {
@@ -270,11 +310,10 @@ namespace AudicaModding
                 {
                     buttonText.text = buttonText.text.Replace("=red>", "=green>");
                 }
-                else
+                else if (!buttonText.text.Contains("=green>"))
                 {
                     buttonText.text = "<color=green>" + buttonText.text + "</color>";
                 }
-                MelonLogger.Log("Green");
             }
         }
 
@@ -291,9 +330,15 @@ namespace AudicaModding
 
                     requestQueue.Add(arguments);
 
-                    if (menuState == MenuState.State.SongPage)
+                    if (menuState == MenuState.State.SongPage && !processQueueRunning)
                     {
                         ProcessQueue();
+                        if (requestFilterActive)
+                        {
+                            SongListControls songListControls = GameObject.FindObjectOfType<SongListControls>();
+                            shootingFilterRequestsButton = true;
+                            songListControls.FilterAll();
+                        }
                     }
                 }
                 else if (command == "mine")

@@ -2,6 +2,7 @@
 using System;
 using TwitchChatter;
 using MelonLoader;
+using System.Linq;
 
 namespace AudicaModding
 {
@@ -15,7 +16,11 @@ namespace AudicaModding
                 AudicaMod.menuState = state;
                 if (!AudicaMod.panelButtonsCreated)
                 {
-                    if (!AudicaMod.buttonsBeingCreated && state == MenuState.State.SongPage) AudicaMod.CreateSongRequestFilterButton();
+                    if (!AudicaMod.buttonsBeingCreated && state == MenuState.State.SongPage)
+                    {
+                        AudicaMod.CreateSongRequestFilterButton();
+                        MelonCoroutines.Start(AudicaMod.ProcessQueueCoroutine());
+                    }
                     return;
                 }
                 if (state == MenuState.State.SongPage)
@@ -23,22 +28,32 @@ namespace AudicaModding
                     MelonCoroutines.Start(AudicaMod.SetFilterSongRequestsButtonnActive(true));
                     MelonCoroutines.Start(AudicaMod.ProcessQueueCoroutine());
                 }
-                else if (state == MenuState.State.LaunchPage || state == MenuState.State.MainPage) MelonCoroutines.Start(AudicaMod.SetFilterSongRequestsButtonnActive(false));
+                else if (state == MenuState.State.LaunchPage || state == MenuState.State.MainPage)
+                {
+                    MelonCoroutines.Start(AudicaMod.SetFilterSongRequestsButtonnActive(false));
+                }
+                if (state == MenuState.State.Launched)
+                {
+                    AudicaMod.requestFilterActive = false;
+                }
             }
         }
 
         [HarmonyPatch(typeof(TwitchChatStream), "write_chat_msg", new Type[] { typeof(string) })]
         private static class PatchWriteChatMsg
         {
-            private static void Prefix(TwitchChatStream __instance, string msg)
+            private static void Prefix(string msg)
             {
                 //MelonLogger.Log("TwitchChatStream: " + msg);
-                if (msg.Substring(0, 1) == "@")
+                if (msg.Length > 1)
                 {
-                    if (msg.Contains("tmi.twitch.tv PRIVMSG "))
+                    if (msg.Substring(0, 1) == "@")
                     {
-                        AudicaMod.ParsedTwitchMessage parsedMsg = AudicaMod.ParseTwitchMessage(msg);
-                        AudicaMod.ParseCommand(parsedMsg.message);
+                        if (msg.Contains("tmi.twitch.tv PRIVMSG "))
+                        {
+                            AudicaMod.ParsedTwitchMessage parsedMsg = AudicaMod.ParseTwitchMessage(msg);
+                            AudicaMod.ParseCommand(parsedMsg.message);
+                        }
                     }
                 }
             }
@@ -113,11 +128,14 @@ namespace AudicaModding
         {
             private static void Postfix(AudioDriver __instance)
             {
-                for (int i = 0; i < AudicaMod.requestList.Count; i++)
+                //for (int i = 0; i < AudicaMod.requestList.Count - 1; i++)
+                foreach(string str in AudicaMod.requestList.ToList())
                 {
-                    if (AudicaMod.requestList[i] == AudicaMod.selectedSong.songID)
+                    //if (AudicaMod.requestList[i] == AudicaMod.selectedSong.songID)
+                    if (str == AudicaMod.selectedSong.songID)
                     {
-                        AudicaMod.requestList.RemoveAt(i);
+                        //AudicaMod.requestList.Remove(AudicaMod.requestList[i]);
+                        AudicaMod.requestList.Remove(str);
                     }
                 }
             }
