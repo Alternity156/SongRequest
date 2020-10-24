@@ -140,5 +140,16 @@ namespace AudicaModding
                 }
             }
         }
+
+        [HarmonyPatch(typeof(EnvironmentLoader), "SwitchEnvironment")]
+        private static class PatchSwitchEnvironment
+        {
+            private static void Postfix(EnvironmentLoader __instance)
+            {
+                AudicaMod.buttonsBeingCreated = false;
+                AudicaMod.panelButtonsCreated = false;
+            }
+        }
+
     }
 }

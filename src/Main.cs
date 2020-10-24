@@ -93,7 +93,7 @@ namespace AudicaModding
         public static IEnumerator SetFilterSongRequestsButtonnActive(bool active)
         {
             if (active) yield return new WaitForSeconds(.65f);
-            else yield return null;
+            //else yield return null;
             filterSongRequestsButton.SetActive(active);
         }
 
@@ -347,7 +347,7 @@ namespace AudicaModding
                 }
             }
         }
-
+        
         public override void OnApplicationStart()
         {
             HarmonyInstance instance = HarmonyInstance.Create("TwitchChatEnhancer");
