@@ -21,6 +21,7 @@ namespace AudicaModding
             public const string DownloadLink = null; // Download Link for the Mod.  (Set as null if none)
         }
 
+        public static bool loadComplete = false;
         public static bool requestFilterActive = false;
         public static bool processQueueRunning = false;
         public static MenuState.State menuState;
@@ -101,7 +102,7 @@ namespace AudicaModding
         {
             if (!processQueueRunning)
             {
-                ProcessQueueCoroutine();
+                //ProcessQueueCoroutine();
                 requestFilterActive = true;
                 SongListControls songListControls = GameObject.FindObjectOfType<SongListControls>();
                 shootingFilterRequestsButton = true;
@@ -196,10 +197,10 @@ namespace AudicaModding
             }
         }
 
-        public static SongSelectItem SearchSong(string query)
+        public static SongList.SongData SearchSong(string query)
         {
             //songSelect = GameObject.FindObjectOfType<SongSelect>();
-            SongSelectItem song = null;
+            SongList.SongData song = null;
 
             //if (songSelect == null) return song;
 
@@ -209,16 +210,16 @@ namespace AudicaModding
             MelonLogger.Log("mItems count: " + songs.Count.ToString());
 
             
-            for (int i = 0; i < songs.Count - 1; i++)
+            for (int i = 0; i < SongList.I.songs.Count - 1; i++)
             //foreach (SongSelectItem ssi in songs)
             {
-                SongSelectItem currentSong = songs[i];
+                SongList.SongData currentSong = SongList.I.songs[i];
                 //SongSelectItem currentSong = ssi;
-                if (currentSong.mSongData.artist.ToLower().Contains(query.ToLower()) ||
-                    currentSong.mSongData.title.ToLower().Contains(query.ToLower()) ||
-                    currentSong.mSongData.songID.ToLower().Contains(query.ToLower()) ||
-                    currentSong.mSongData.artist.ToLower().Replace(" ", "").Contains(query.ToLower()) ||
-                    currentSong.mSongData.title.ToLower().Replace(" ", "").Contains(query.ToLower()))
+                if (currentSong.artist.ToLower().Contains(query.ToLower()) ||
+                    currentSong.title.ToLower().Contains(query.ToLower()) ||
+                    currentSong.songID.ToLower().Contains(query.ToLower()) ||
+                    currentSong.artist.ToLower().Replace(" ", "").Contains(query.ToLower()) ||
+                    currentSong.title.ToLower().Replace(" ", "").Contains(query.ToLower()))
                 {
                     song = currentSong;
                     break;
@@ -227,6 +228,7 @@ namespace AudicaModding
             return song;
         }
 
+        /*
         public static IEnumerator ProcessQueueCoroutine()
         {
             TextMeshPro buttonText = filterSongRequestsButton.GetComponentInChildren<TextMeshPro>();
@@ -260,6 +262,7 @@ namespace AudicaModding
                 songListControls.FilterAll();
             }
         }
+        */
 
         public static void ProcessQueue()
         {
@@ -270,16 +273,16 @@ namespace AudicaModding
                 //for (int i = 0; i < requestQueue.Count - 1; i++)
                 foreach (string str in requestQueue.ToList())
                 {
-                    
-                    SongSelectItem result = SearchSong(str);
+
+                    SongList.SongData result = SearchSong(str);
 
                     if (result != null)
                     {
-                        MelonLogger.Log("Result: " + result.mSongData.songID);
-                        MelonLogger.Log(result.mSongData.title);
-                        if (!requestList.Contains(result.mSongData.songID))
+                        MelonLogger.Log("Result: " + result.songID);
+                        MelonLogger.Log(result.title);
+                        if (!requestList.Contains(result.songID))
                         {
-                            requestList.Add(result.mSongData.songID);
+                            requestList.Add(result.songID);
                         }
                     }
                     else
@@ -291,6 +294,7 @@ namespace AudicaModding
                 requestQueue.Clear();
             }
 
+            
             TextMeshPro buttonText = filterSongRequestsButton.GetComponentInChildren<TextMeshPro>();
 
             if (requestList.Count == 0)
@@ -315,6 +319,7 @@ namespace AudicaModding
                     buttonText.text = "<color=green>" + buttonText.text + "</color>";
                 }
             }
+            
         }
 
         public static void ParseCommand(string msg)
@@ -330,7 +335,7 @@ namespace AudicaModding
 
                     requestQueue.Add(arguments);
 
-                    if (menuState == MenuState.State.SongPage && !processQueueRunning)
+                    if (loadComplete)
                     {
                         ProcessQueue();
                         if (requestFilterActive)
@@ -340,10 +345,6 @@ namespace AudicaModding
                             songListControls.FilterAll();
                         }
                     }
-                }
-                else if (command == "mine")
-                {
-                    //TODO add mine spawning
                 }
             }
         }

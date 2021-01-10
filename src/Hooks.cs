@@ -19,14 +19,14 @@ namespace AudicaModding
                     if (!AudicaMod.buttonsBeingCreated && state == MenuState.State.SongPage)
                     {
                         AudicaMod.CreateSongRequestFilterButton();
-                        MelonCoroutines.Start(AudicaMod.ProcessQueueCoroutine());
+                        //MelonCoroutines.Start(AudicaMod.ProcessQueueCoroutine());
                     }
                     return;
                 }
                 if (state == MenuState.State.SongPage)
                 {
                     MelonCoroutines.Start(AudicaMod.SetFilterSongRequestsButtonnActive(true));
-                    MelonCoroutines.Start(AudicaMod.ProcessQueueCoroutine());
+                    //MelonCoroutines.Start(AudicaMod.ProcessQueueCoroutine());
                 }
                 else if (state == MenuState.State.LaunchPage || state == MenuState.State.MainPage)
                 {
@@ -55,6 +55,19 @@ namespace AudicaModding
                             AudicaMod.ParseCommand(parsedMsg.message);
                         }
                     }
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(StartupLoader), "SetState", new Type[] { typeof(StartupLoader.State) })]
+        private static class StartupLoaderSetStatePatch
+        {
+            private static void Postfix(StartupLoader __instance, ref StartupLoader.State newState)
+            {
+                if (newState == StartupLoader.State.Complete)
+                {
+                    AudicaMod.loadComplete = true;
+                    AudicaMod.ProcessQueue();
                 }
             }
         }
