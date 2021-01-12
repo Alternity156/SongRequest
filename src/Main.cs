@@ -16,8 +16,6 @@ namespace AudicaModding
         }
 
         public static bool loadComplete = false;
-        public static bool processQueueRunning = false;
-        public static MenuState.State menuState;
         public static SongList.SongData selectedSong;
 
         public static System.Collections.Generic.List<string> requestList = new System.Collections.Generic.List<string>();
@@ -107,7 +105,6 @@ namespace AudicaModding
                     if (loadComplete)
                     {
                         ProcessQueue();
-                        RequestUI.UpdateFilter();
                     }
                 }
             }
@@ -115,7 +112,6 @@ namespace AudicaModding
         
         public override void OnApplicationStart()
         {
-            // TODO: Is this in any way useful?
             HarmonyInstance instance = HarmonyInstance.Create("TwitchChatEnhancer");
         }
 

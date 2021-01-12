@@ -8,35 +8,6 @@ namespace AudicaModding
 {
     internal static class Hooks
     {
-        [HarmonyPatch(typeof(MenuState), "SetState", new Type[] { typeof(MenuState.State) })]
-        private static class PatchSetState
-        {
-            private static void Postfix(MenuState __instance, ref MenuState.State state)
-            {
-                SongRequests.menuState = state;
-                if (!RequestUI.panelButtonsCreated)
-                {
-                    if (!RequestUI.buttonsBeingCreated && state == MenuState.State.SongPage)
-                    {
-                        RequestUI.CreateSongRequestFilterButton();
-                    }
-                    return;
-                }
-                if (state == MenuState.State.SongPage)
-                {
-                    MelonCoroutines.Start(RequestUI.SetFilterSongRequestsButtonActive(true));
-                }
-                else if (state == MenuState.State.LaunchPage || state == MenuState.State.MainPage)
-                {
-                    MelonCoroutines.Start(RequestUI.SetFilterSongRequestsButtonActive(false));
-                }
-                if (state == MenuState.State.Launched)
-                {
-                    RequestUI.requestFilterActive = false;
-                }
-            }
-        }
-
         [HarmonyPatch(typeof(TwitchChatStream), "write_chat_msg", new Type[] { typeof(string) })]
         private static class PatchWriteChatMsg
         {
@@ -73,14 +44,7 @@ namespace AudicaModding
         {
             private static void Prefix(SongListControls __instance)
             {
-                if (!RequestUI.shootingFilterRequestsButton)
-                {
-                    RequestUI.requestFilterActive = false;
-                }
-                else
-                {
-                    RequestUI.shootingFilterRequestsButton = false;
-                }
+                RequestUI.DisableFilter();
             }
         }
 
@@ -89,7 +53,7 @@ namespace AudicaModding
         {
             private static void Prefix(SongListControls __instance)
             {
-                RequestUI.requestFilterActive = false;
+                RequestUI.DisableFilter();
             }
         }
 
@@ -98,28 +62,36 @@ namespace AudicaModding
         {
             private static void Prefix(SongListControls __instance)
             {
-                RequestUI.requestFilterActive = false;
+                RequestUI.DisableFilter();
             }
         }
 
         [HarmonyPatch(typeof(SongSelect), "GetSongIDs", new Type[] {typeof(bool) } )]
         private static class PatchGetSongIDs
         {
-            private static void Postfix(SongSelect __instance, bool extras, ref Il2CppSystem.Collections.Generic.List<string> __result)
+            private static void Postfix(SongSelect __instance, ref bool extras, ref Il2CppSystem.Collections.Generic.List<string> __result)
             {
                 if (RequestUI.requestFilterActive)
                 {
+                    extras = true;
                     __result.Clear();
                     __instance.songSelectHeaderItems.mItems[0].titleLabel.text = "Song Requests";
 
-                    if (extras)
+                    foreach (string songID in SongRequests.requestList)
                     {
-                        foreach (string songID in SongRequests.requestList)
-                        {
-                            __result.Add(songID);
-                        }
+                        __result.Add(songID);
                     }
                 }
+                __instance.scroller.SnapTo(0);
+            }
+        }
+
+        [HarmonyPatch(typeof(SongSelect), "OnEnable", new Type[0])]
+        private static class AdjustSongSelect
+        {
+            private static void Postfix(SongSelect __instance)
+            {
+                RequestUI.Initialize();
             }
         }
 
@@ -147,15 +119,13 @@ namespace AudicaModding
             }
         }
 
-        [HarmonyPatch(typeof(EnvironmentLoader), "SwitchEnvironment")]
-        private static class PatchSwitchEnvironment
+        [HarmonyPatch(typeof(LaunchPanel), "Play", new Type[0])]
+        private static class ResetFilterPanel
         {
-            private static void Postfix(EnvironmentLoader __instance)
+            private static void Prefix(SongListControls __instance)
             {
-                RequestUI.buttonsBeingCreated = false;
-                RequestUI.panelButtonsCreated = false;
+                RequestUI.firstInit = true;
             }
         }
-
     }
 }
