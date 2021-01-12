@@ -182,6 +182,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="src\Hooks.cs" />
+    <Compile Include="src\RequestUI.cs" />
+    <Compile Include="src\ParsedTwitchMessage.cs" />
     <Compile Include="src\Main.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

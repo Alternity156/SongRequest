@@ -1,16 +1,10 @@
 using MelonLoader;
-using UnityEngine;
 using Harmony;
-using System;
-using UnityEngine.Events;
-using TMPro;
-using System.Collections;
 using System.Linq;
-using Il2CppSystem;
 
 namespace AudicaModding
 {
-    public class AudicaMod : MelonMod
+    public class SongRequests : MelonMod
     {
         public static class BuildInfo
         {
@@ -22,174 +16,23 @@ namespace AudicaModding
         }
 
         public static bool loadComplete = false;
-        public static bool requestFilterActive = false;
         public static bool processQueueRunning = false;
         public static MenuState.State menuState;
         public static SongList.SongData selectedSong;
 
-        public static GameObject filterMainButton = null;
-        public static bool panelButtonsCreated = false;
-        public static bool buttonsBeingCreated = false;
-        public static bool shootingFilterRequestsButton = false;
-
-        public static GameObject filterSongRequestsButton = null;
-        public static Vector3 filterSongRequestsButtonPos = new Vector3(-22.1f, 16.5f, 14.6f);
-        public static Vector3 filterSongRequestsButtonRot = new Vector3(0.0f, 307.4f, 0.0f);
-        public static Vector3 filterSongRequestsButtonScale = new Vector3(2.8f, 2.8f, 2.8f);
-
         public static System.Collections.Generic.List<string> requestList = new System.Collections.Generic.List<string>();
         public static System.Collections.Generic.List<string> requestQueue = new System.Collections.Generic.List<string>();
 
-        public static SongSelect songSelect = null;
-        public static Il2CppSystem.Collections.Generic.List<SongSelectItem> songs = new Il2CppSystem.Collections.Generic.List<SongSelectItem>();
-
-        public class ParsedTwitchMessage
-        {
-            public string badgeInfo = "";
-            public string badges = "";
-            public string bits = "";
-            public string clientNonce = "";
-            public string color = "";
-            public string displayName = "";
-            public string emotes = "";
-            public string flags = "";
-            public string id = "";
-            public string mod = "";
-            public string roomId = "";
-            public string tmiSentTs = "";
-            public string userId = "";
-            public string message = "";
-            public string user = "";
-        }
-
-        public static GameObject CreateButton(GameObject buttonPrefab, string label, System.Action onHit, Vector3 position, Vector3 eulerRotation, Vector3 scale)
-        {
-            GameObject buttonObject = UnityEngine.Object.Instantiate(buttonPrefab);
-            buttonObject.transform.rotation = Quaternion.Euler(eulerRotation);
-            buttonObject.transform.position = position;
-            buttonObject.transform.localScale = scale;
-
-            UnityEngine.Object.Destroy(buttonObject.GetComponentInChildren<Localizer>());
-            TextMeshPro buttonText = buttonObject.GetComponentInChildren<TextMeshPro>();
-            buttonText.text = label;
-            GunButton button = buttonObject.GetComponentInChildren<GunButton>();
-            button.destroyOnShot = false;
-            button.disableOnShot = false;
-            button.SetSelected(false);
-            button.onHitEvent = new UnityEvent();
-            button.onHitEvent.AddListener(onHit);
-
-            return buttonObject.gameObject;
-        }
-
-        public static void CreateSongRequestFilterButton()
-        {
-            buttonsBeingCreated = true;
-            filterMainButton = GameObject.FindObjectOfType<MainMenuPanel>().buttons[1];
-            filterSongRequestsButton = CreateButton(filterMainButton, "Song Requests", OnFilterSongRequestsShot, filterSongRequestsButtonPos, filterSongRequestsButtonRot, filterSongRequestsButtonScale);
-            panelButtonsCreated = true;
-            SetFilterSongRequestsButtonnActive(true);
-        }
-
-        public static IEnumerator SetFilterSongRequestsButtonnActive(bool active)
-        {
-            if (active) yield return new WaitForSeconds(.65f);
-            //else yield return null;
-            filterSongRequestsButton.SetActive(active);
-        }
-
-        public static void OnFilterSongRequestsShot()
-        {
-            if (!processQueueRunning)
-            {
-                //ProcessQueueCoroutine();
-                requestFilterActive = true;
-                SongListControls songListControls = GameObject.FindObjectOfType<SongListControls>();
-                shootingFilterRequestsButton = true;
-                songListControls.FilterAll();
-            }
-        }
-
-        public static ParsedTwitchMessage ParseTwitchMessage(string msg)
-        {
-            ParsedTwitchMessage parsedMsg = new ParsedTwitchMessage();
-
-            string separator = ":";
-            string tagSeparator = ";";
-
-            string tags = msg.Split(separator.ToCharArray())[0];
-
-            parsedMsg.user = msg.Split(separator.ToCharArray())[1];
-            parsedMsg.message = msg.Split(separator.ToCharArray())[2];
-
-            foreach (string str in tags.Split(tagSeparator.ToCharArray()).ToList())
-            {
-                if (str.Contains("badge-info="))
-                {
-                    parsedMsg.badgeInfo = str.Replace("badge-info=", "");
-                }
-                else if (str.Contains("badges="))
-                {
-                    parsedMsg.badges = str.Replace("badges=", "");
-                }
-                else if (str.Contains("bits="))
-                {
-                    parsedMsg.bits = str.Replace("bits=", "");
-                }
-                else if (str.Contains("client-nonce="))
-                {
-                    parsedMsg.clientNonce = str.Replace("client-nonce=", "");
-                }
-                else if (str.Contains("color="))
-                {
-                    parsedMsg.color = str.Replace("color=", "");
-                }
-                else if (str.Contains("display-name="))
-                {
-                    parsedMsg.displayName = str.Replace("display-name=", "");
-                }
-                else if (str.Contains("emotes="))
-                {
-                    parsedMsg.emotes = str.Replace("emotes=", "");
-                }
-                else if (str.Contains("flags="))
-                {
-                    parsedMsg.flags = str.Replace("flags=", "");
-                }
-                else if (str.Substring(0, 3) == "id=")
-                {
-                    parsedMsg.id = str.Replace("id=", "");
-                }
-                else if (str.Contains("mod="))
-                {
-                    parsedMsg.mod = str.Replace("mod=", "");
-                }
-                else if (str.Contains("room-id="))
-                {
-                    parsedMsg.roomId = str.Replace("room-id=", "");
-                }
-                else if (str.Contains("tmi-sent-ts="))
-                {
-                    parsedMsg.tmiSentTs = str.Replace("tmi-sent-ts=", "");
-                }
-                else if (str.Contains("user-id="))
-                {
-                    parsedMsg.userId = str.Replace("user-id=", "");
-                }
-            }
-            return parsedMsg;
-        }
-
         public static int GetBits(ParsedTwitchMessage msg)
         {
-            if (msg.bits != "")
+            if (msg.Bits != "")
             {
                 return 0;
             }
             else
             {
                 int totalBits = 0;
-                foreach (string str in msg.bits.Split(",".ToCharArray()))
+                foreach (string str in msg.Bits.Split(",".ToCharArray()))
                 {
                     totalBits += System.Convert.ToInt32(str);
                 }
@@ -199,22 +42,11 @@ namespace AudicaModding
 
         public static SongList.SongData SearchSong(string query)
         {
-            //songSelect = GameObject.FindObjectOfType<SongSelect>();
             SongList.SongData song = null;
-
-            //if (songSelect == null) return song;
-
-            //songs = songSelect.songSelectItems.mItems;
-
-
-            MelonLogger.Log("mItems count: " + songs.Count.ToString());
-
             
             for (int i = 0; i < SongList.I.songs.Count - 1; i++)
-            //foreach (SongSelectItem ssi in songs)
             {
                 SongList.SongData currentSong = SongList.I.songs[i];
-                //SongSelectItem currentSong = ssi;
                 if (currentSong.artist.ToLower().Contains(query.ToLower()) ||
                     currentSong.title.ToLower().Contains(query.ToLower()) ||
                     currentSong.songID.ToLower().Contains(query.ToLower()) ||
@@ -228,52 +60,14 @@ namespace AudicaModding
             return song;
         }
 
-        /*
-        public static IEnumerator ProcessQueueCoroutine()
-        {
-            TextMeshPro buttonText = filterSongRequestsButton.GetComponentInChildren<TextMeshPro>();
-            if (!buttonText.text.Contains("\n (Waiting to process)"))
-            {
-                buttonText.text = buttonText.text + "\n (Waiting to process)";
-            }
-            processQueueRunning = true;
-            int songCount = 0;
-            yield return new WaitForSeconds(2.0f);
-            songSelect = GameObject.FindObjectOfType<SongSelect>();
-            while (processQueueRunning)
-            {
-                if (songSelect.songSelectItems.mItems.Count > songCount)
-                {
-                    songCount = songSelect.songSelectItems.mItems.Count;
-                    yield return new WaitForSeconds(2.0f);
-                }
-                else
-                {
-                    processQueueRunning = false;
-                    songs = songSelect.songSelectItems.mItems;
-                }
-            }
-            buttonText.text = buttonText.text.Replace("\n (Waiting to process)", "");
-            ProcessQueue();
-            if (requestFilterActive)
-            {
-                SongListControls songListControls = GameObject.FindObjectOfType<SongListControls>();
-                shootingFilterRequestsButton = true;
-                songListControls.FilterAll();
-            }
-        }
-        */
-
         public static void ProcessQueue()
         {
             MelonLogger.Log(requestQueue.Count.ToString() + " in queue.");
 
             if (requestQueue.Count != 0)
             {
-                //for (int i = 0; i < requestQueue.Count - 1; i++)
                 foreach (string str in requestQueue.ToList())
                 {
-
                     SongList.SongData result = SearchSong(str);
 
                     if (result != null)
@@ -294,32 +88,7 @@ namespace AudicaModding
                 requestQueue.Clear();
             }
 
-            
-            TextMeshPro buttonText = filterSongRequestsButton.GetComponentInChildren<TextMeshPro>();
-
-            if (requestList.Count == 0)
-            {
-                if (buttonText.text.Contains("=green>"))
-                {
-                    buttonText.text = buttonText.text.Replace("=green>", "=red>");
-                }
-                else if (!buttonText.text.Contains("=red>"))
-                {
-                    buttonText.text = "<color=red>" + buttonText.text + "</color>";
-                }
-            }
-            else
-            {
-                if (buttonText.text.Contains("=red>"))
-                {
-                    buttonText.text = buttonText.text.Replace("=red>", "=green>");
-                }
-                else if (!buttonText.text.Contains("=green>"))
-                {
-                    buttonText.text = "<color=green>" + buttonText.text + "</color>";
-                }
-            }
-            
+            RequestUI.UpdateButtonText();
         }
 
         public static void ParseCommand(string msg)
@@ -338,12 +107,7 @@ namespace AudicaModding
                     if (loadComplete)
                     {
                         ProcessQueue();
-                        if (requestFilterActive)
-                        {
-                            SongListControls songListControls = GameObject.FindObjectOfType<SongListControls>();
-                            shootingFilterRequestsButton = true;
-                            songListControls.FilterAll();
-                        }
+                        RequestUI.UpdateFilter();
                     }
                 }
             }
@@ -351,6 +115,7 @@ namespace AudicaModding
         
         public override void OnApplicationStart()
         {
+            // TODO: Is this in any way useful?
             HarmonyInstance instance = HarmonyInstance.Create("TwitchChatEnhancer");
         }
 

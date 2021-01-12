@@ -13,28 +13,26 @@ namespace AudicaModding
         {
             private static void Postfix(MenuState __instance, ref MenuState.State state)
             {
-                AudicaMod.menuState = state;
-                if (!AudicaMod.panelButtonsCreated)
+                SongRequests.menuState = state;
+                if (!RequestUI.panelButtonsCreated)
                 {
-                    if (!AudicaMod.buttonsBeingCreated && state == MenuState.State.SongPage)
+                    if (!RequestUI.buttonsBeingCreated && state == MenuState.State.SongPage)
                     {
-                        AudicaMod.CreateSongRequestFilterButton();
-                        //MelonCoroutines.Start(AudicaMod.ProcessQueueCoroutine());
+                        RequestUI.CreateSongRequestFilterButton();
                     }
                     return;
                 }
                 if (state == MenuState.State.SongPage)
                 {
-                    MelonCoroutines.Start(AudicaMod.SetFilterSongRequestsButtonnActive(true));
-                    //MelonCoroutines.Start(AudicaMod.ProcessQueueCoroutine());
+                    MelonCoroutines.Start(RequestUI.SetFilterSongRequestsButtonActive(true));
                 }
                 else if (state == MenuState.State.LaunchPage || state == MenuState.State.MainPage)
                 {
-                    MelonCoroutines.Start(AudicaMod.SetFilterSongRequestsButtonnActive(false));
+                    MelonCoroutines.Start(RequestUI.SetFilterSongRequestsButtonActive(false));
                 }
                 if (state == MenuState.State.Launched)
                 {
-                    AudicaMod.requestFilterActive = false;
+                    RequestUI.requestFilterActive = false;
                 }
             }
         }
@@ -44,15 +42,13 @@ namespace AudicaModding
         {
             private static void Prefix(string msg)
             {
-                //MelonLogger.Log("TwitchChatStream: " + msg);
                 if (msg.Length > 1)
                 {
                     if (msg.Substring(0, 1) == "@")
                     {
                         if (msg.Contains("tmi.twitch.tv PRIVMSG "))
                         {
-                            AudicaMod.ParsedTwitchMessage parsedMsg = AudicaMod.ParseTwitchMessage(msg);
-                            AudicaMod.ParseCommand(parsedMsg.message);
+                            SongRequests.ParseCommand(new ParsedTwitchMessage(msg).Message);
                         }
                     }
                 }
@@ -66,8 +62,8 @@ namespace AudicaModding
             {
                 if (newState == StartupLoader.State.Complete)
                 {
-                    AudicaMod.loadComplete = true;
-                    AudicaMod.ProcessQueue();
+                    SongRequests.loadComplete = true;
+                    SongRequests.ProcessQueue();
                 }
             }
         }
@@ -77,13 +73,13 @@ namespace AudicaModding
         {
             private static void Prefix(SongListControls __instance)
             {
-                if (!AudicaMod.shootingFilterRequestsButton)
+                if (!RequestUI.shootingFilterRequestsButton)
                 {
-                    AudicaMod.requestFilterActive = false;
+                    RequestUI.requestFilterActive = false;
                 }
                 else
                 {
-                    AudicaMod.shootingFilterRequestsButton = false;
+                    RequestUI.shootingFilterRequestsButton = false;
                 }
             }
         }
@@ -93,7 +89,7 @@ namespace AudicaModding
         {
             private static void Prefix(SongListControls __instance)
             {
-                AudicaMod.requestFilterActive = false;
+                RequestUI.requestFilterActive = false;
             }
         }
 
@@ -102,7 +98,7 @@ namespace AudicaModding
         {
             private static void Prefix(SongListControls __instance)
             {
-                AudicaMod.requestFilterActive = false;
+                RequestUI.requestFilterActive = false;
             }
         }
 
@@ -111,14 +107,14 @@ namespace AudicaModding
         {
             private static void Postfix(SongSelect __instance, bool extras, ref Il2CppSystem.Collections.Generic.List<string> __result)
             {
-                if (AudicaMod.requestFilterActive)
+                if (RequestUI.requestFilterActive)
                 {
                     __result.Clear();
                     __instance.songSelectHeaderItems.mItems[0].titleLabel.text = "Song Requests";
 
                     if (extras)
                     {
-                        foreach (string songID in AudicaMod.requestList)
+                        foreach (string songID in SongRequests.requestList)
                         {
                             __result.Add(songID);
                         }
@@ -132,7 +128,7 @@ namespace AudicaModding
         {
             private static void Postfix(SongSelectItem __instance)
             {
-                AudicaMod.selectedSong = __instance.mSongData;
+                SongRequests.selectedSong = __instance.mSongData;
             }
         }
 
@@ -141,14 +137,11 @@ namespace AudicaModding
         {
             private static void Postfix(AudioDriver __instance)
             {
-                //for (int i = 0; i < AudicaMod.requestList.Count - 1; i++)
-                foreach(string str in AudicaMod.requestList.ToList())
+                foreach(string str in SongRequests.requestList.ToList())
                 {
-                    //if (AudicaMod.requestList[i] == AudicaMod.selectedSong.songID)
-                    if (str == AudicaMod.selectedSong.songID)
+                    if (str == SongRequests.selectedSong.songID)
                     {
-                        //AudicaMod.requestList.Remove(AudicaMod.requestList[i]);
-                        AudicaMod.requestList.Remove(str);
+                        SongRequests.requestList.Remove(str);
                     }
                 }
             }
@@ -159,8 +152,8 @@ namespace AudicaModding
         {
             private static void Postfix(EnvironmentLoader __instance)
             {
-                AudicaMod.buttonsBeingCreated = false;
-                AudicaMod.panelButtonsCreated = false;
+                RequestUI.buttonsBeingCreated = false;
+                RequestUI.panelButtonsCreated = false;
             }
         }
 
