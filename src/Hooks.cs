@@ -39,17 +39,20 @@ namespace AudicaModding
             }
         }
 
-        [HarmonyPatch(typeof(SongListControls), "FilterAll")]
-        private static class PatchFilterAll
+        [HarmonyPatch(typeof(MenuState), "SetState", new Type[] { typeof(MenuState.State) })]
+        private static class MenuStateSetStatePatch
         {
-            private static void Prefix(SongListControls __instance)
+            private static void Postfix(MenuState __instance, ref MenuState.State state)
             {
-                RequestUI.DisableFilter();
+                if (state == MenuState.State.SongPage)
+                {
+                    RequestUI.UpdateButtonText();
+                }
             }
         }
 
-        [HarmonyPatch(typeof(SongListControls), "FilterExtras")]
-        private static class PatchFilterExtras
+        [HarmonyPatch(typeof(SongListControls), "FilterAll")]
+        private static class PatchFilterAll
         {
             private static void Prefix(SongListControls __instance)
             {

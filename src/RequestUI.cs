@@ -110,6 +110,8 @@ namespace AudicaModding
                 DisableFilter();
                 songSelect.ShowSongList();
             }));
+
+            UpdateButtonText();
         }
 
         private static void OnFilterSongRequestsShot()
