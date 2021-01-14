@@ -9,12 +9,18 @@ namespace AudicaModding
         public static bool requestFilterActive = false;
         public static bool firstInit = true;
 
-        private static GameObject filterSongRequestsButton         = null;
-        private static GameObject requestButtonSelectedIndicator = null;
+        private static bool isSkipButtonActive = false;
 
-        private static Vector3    filterSongRequestsButtonPos   = new Vector3(-22.1f, 16.5f, 14.6f);
+        private static GameObject filterSongRequestsButton       = null;
+        private static GameObject requestButtonSelectedIndicator = null;
+        private static GameObject skipSongRequestsButton         = null;
+
+        private static Vector3    filterSongRequestsButtonPos   = new Vector3(0.0f, 10.5f, 0.0f);
         private static Vector3    filterSongRequestsButtonScale = new Vector3(2.8f, 2.8f, 2.8f);
-        
+
+        private static Vector3    skipButtonPos                 = new Vector3(0.0f, 15.1f, 0.0f);
+        private static Vector3    skipButtonScale               = new Vector3(1.0f, 1.0f, 1.0f);
+
         private static SongSelect       songSelect       = null;
         private static SongListControls songListControls = null;
 
@@ -28,6 +34,7 @@ namespace AudicaModding
                 songListControls = GameObject.FindObjectOfType<SongListControls>();
 
                 CreateSongRequestFilterButton();
+                CreateSongRequestSkipButton();
             }
         }
 
@@ -35,6 +42,7 @@ namespace AudicaModding
         {
             requestFilterActive = false;
             requestButtonSelectedIndicator.SetActive(false);
+            HideSkipButton();
         }
 
         public static void UpdateButtonText()
@@ -68,11 +76,29 @@ namespace AudicaModding
             }
         }
 
+        public static void ShowSkipButton()
+        {
+            isSkipButtonActive = true;
+            skipSongRequestsButton?.SetActive(true);
+        }
+        public static void HideSkipButton()
+        {
+            isSkipButtonActive = false;
+            skipSongRequestsButton?.SetActive(false);
+        }
+
+        public static void UpdateFilter()
+        {
+            if (requestFilterActive)
+                songSelect?.ShowSongList();
+        }
+
         private static GameObject CreateButton(GameObject buttonPrefab, string label, System.Action onHit, Vector3 position, Vector3 scale)
         {
             GameObject buttonObject = Object.Instantiate(buttonPrefab, buttonPrefab.transform.parent);
-            buttonObject.transform.position = position;
-            buttonObject.transform.localScale = scale;
+            buttonObject.transform.localPosition    = position;
+            buttonObject.transform.localScale       = scale;
+            buttonObject.transform.localEulerAngles = new Vector3(0.0f, 0.0f, 0.0f);
 
             Object.Destroy(buttonObject.GetComponentInChildren<Localizer>());
             TextMeshPro buttonText = buttonObject.GetComponentInChildren<TextMeshPro>();
@@ -114,6 +140,24 @@ namespace AudicaModding
             UpdateButtonText();
         }
 
+        private static void CreateSongRequestSkipButton()
+        {
+            if (skipSongRequestsButton != null)
+            {
+                skipSongRequestsButton.SetActive(true);
+                return;
+            }
+
+            GameObject backButton = GameObject.Find("menu/ShellPage_Song/page/backParent/back");
+            if (backButton == null)
+                return;
+
+            skipSongRequestsButton = CreateButton(backButton, "Skip Next", OnSkipSongRequestShot, 
+                                                  skipButtonPos, skipButtonScale);
+
+            skipSongRequestsButton.SetActive(isSkipButtonActive);
+        }
+
         private static void OnFilterSongRequestsShot()
         {
             songListControls.FilterExtras(); // this seems to fix duplicated songs;
@@ -121,12 +165,24 @@ namespace AudicaModding
             {
                 requestFilterActive = true;
                 requestButtonSelectedIndicator.SetActive(true);
+                ShowSkipButton();
             }
             else
             {
                 DisableFilter();
             }
             songSelect.ShowSongList();
+        }
+
+        private static void OnSkipSongRequestShot()
+        {
+            if (SongRequests.requestList.Count > 0 && songSelect != null && songSelect.songSelectItems != null && songSelect.songSelectItems.mItems != null)
+            {
+                string id = songSelect.songSelectItems.mItems[0].mSongData.songID;
+                SongRequests.requestList.Remove(id);
+                UpdateButtonText();
+                songSelect.ShowSongList();
+            }
         }
     }
 }

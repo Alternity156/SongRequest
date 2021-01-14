@@ -60,6 +60,7 @@ namespace AudicaModding
 
         public static void ProcessQueue()
         {
+            bool addedAny = false;
             MelonLogger.Log(requestQueue.Count.ToString() + " in queue.");
 
             if (requestQueue.Count != 0)
@@ -75,6 +76,7 @@ namespace AudicaModding
                         if (!requestList.Contains(result.songID))
                         {
                             requestList.Add(result.songID);
+                            addedAny = true;
                         }
                     }
                     else
@@ -85,6 +87,9 @@ namespace AudicaModding
                 }
                 requestQueue.Clear();
             }
+
+            if (addedAny && MenuState.GetState() == MenuState.State.SongPage)
+                RequestUI.UpdateFilter();
 
             RequestUI.UpdateButtonText();
         }
@@ -108,11 +113,6 @@ namespace AudicaModding
                     }
                 }
             }
-        }
-        
-        public override void OnApplicationStart()
-        {
-            HarmonyInstance instance = HarmonyInstance.Create("TwitchChatEnhancer");
         }
 
         public override void OnUpdate()
