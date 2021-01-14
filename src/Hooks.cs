@@ -84,8 +84,8 @@ namespace AudicaModding
                     {
                         __result.Add(songID);
                     }
+                    __instance.scroller.SnapTo(0);
                 }
-                __instance.scroller.SnapTo(0);
             }
         }
 
