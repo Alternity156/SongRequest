@@ -114,22 +114,14 @@ namespace AudicaModding
         {
             private static void Postfix(AudioDriver __instance)
             {
-                foreach(string str in SongRequests.requestList.ToList())
+                RequestUI.firstInit = true;
+                foreach (string str in SongRequests.requestList.ToList())
                 {
                     if (str == SongRequests.selectedSong.songID)
                     {
                         SongRequests.requestList.Remove(str);
                     }
                 }
-            }
-        }
-
-        [HarmonyPatch(typeof(LaunchPanel), "Play", new Type[0])]
-        private static class ResetFilterPanel
-        {
-            private static void Prefix(SongListControls __instance)
-            {
-                RequestUI.firstInit = true;
             }
         }
     }
