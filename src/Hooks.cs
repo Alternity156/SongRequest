@@ -56,7 +56,8 @@ namespace AudicaModding
         {
             private static void Prefix(SongListControls __instance)
             {
-                RequestUI.DisableFilter();
+                if (!SongRequests.hasCompatibleSongBrowser)
+                    RequestUI.DisableFilter();
             }
         }
 
@@ -65,7 +66,8 @@ namespace AudicaModding
         {
             private static void Prefix(SongListControls __instance)
             {
-                RequestUI.DisableFilter();
+                if (!SongRequests.hasCompatibleSongBrowser)
+                    RequestUI.DisableFilter();
             }
         }
 
@@ -74,7 +76,7 @@ namespace AudicaModding
         {
             private static void Postfix(SongSelect __instance, ref bool extras, ref Il2CppSystem.Collections.Generic.List<string> __result)
             {
-                if (RequestUI.requestFilterActive)
+                if (!SongRequests.hasCompatibleSongBrowser && RequestUI.requestFilterActive)
                 {
                     extras = true;
                     __result.Clear();

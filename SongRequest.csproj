@@ -79,6 +79,9 @@
       <HintPath>lib\Sanford.Multimedia.Midi.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="SongBrowser">
+      <HintPath>lib\SongBrowser.dll</HintPath>
+    </Reference>
     <Reference Include="SonyNP">
       <HintPath>lib\SonyNP.dll</HintPath>
       <Private>False</Private>
@@ -184,7 +187,7 @@
     <Compile Include="src\Hooks.cs" />
     <Compile Include="src\RequestUI.cs" />
     <Compile Include="src\ParsedTwitchMessage.cs" />
-    <Compile Include="src\Main.cs" />
+    <Compile Include="src\SongRequests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

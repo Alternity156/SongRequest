@@ -1,6 +1,6 @@
 using MelonLoader;
-using Harmony;
 using System.Linq;
+[assembly: MelonOptionalDependencies("SongBrowser")]
 
 namespace AudicaModding
 {
@@ -11,15 +11,39 @@ namespace AudicaModding
             public const string Name = "SongRequest";  // Name of the Mod.  (MUST BE SET)
             public const string Author = "Alternity"; // Author of the Mod.  (Set as null if none)
             public const string Company = null; // Company that made the Mod.  (Set as null if none)
-            public const string Version = "0.1.0"; // Version of the Mod.  (MUST BE SET)
+            public const string Version = "0.2.0"; // Version of the Mod.  (MUST BE SET)
             public const string DownloadLink = null; // Download Link for the Mod.  (Set as null if none)
         }
 
-        public static bool loadComplete = false;
+        public static bool loadComplete             = false;
+        public static bool hasCompatibleSongBrowser = false;
         public static SongList.SongData selectedSong;
 
         public static System.Collections.Generic.List<string> requestList = new System.Collections.Generic.List<string>();
         public static System.Collections.Generic.List<string> requestQueue = new System.Collections.Generic.List<string>();
+
+        public override void OnApplicationStart()
+        {
+            if (MelonHandler.Mods.Any(HasCompatibleSongBrowser))
+            {
+                hasCompatibleSongBrowser = true;
+                MelonLogger.Log("Song Browser is installed. Enabling integration");
+                RequestUI.Register();
+            }
+        }
+
+        private bool HasCompatibleSongBrowser(MelonMod mod)
+        { 
+            if (mod.Info.SystemType.Name == nameof(SongBrowser))
+            {
+                string[] versionInfo = mod.Info.Version.Split('.');
+                int major = int.Parse(versionInfo[0]);
+                int minor = int.Parse(versionInfo[1]);
+                if (major > 2 || (major == 2 && minor >= 3))
+                    return true;
+            }
+            return false;
+        }
 
         public static int GetBits(ParsedTwitchMessage msg)
         {

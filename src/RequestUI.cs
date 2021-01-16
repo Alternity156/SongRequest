@@ -24,6 +24,16 @@ namespace AudicaModding
         private static SongSelect       songSelect       = null;
         private static SongListControls songListControls = null;
 
+        private static System.Func<FilterPanel.Filter> getFilter = null; // for use with song browser integration
+
+        // if compatible version of song browser is available, use song browser's filter panel
+        public static void Register()
+        {
+            getFilter = FilterPanel.RegisterFilter("requests", "Song Requests",
+                                                   ShowSkipButton, HideSkipButton,
+                                                   ApplyFilter);
+        }
+
         public static void Initialize()
         {
             if (firstInit)
@@ -33,7 +43,8 @@ namespace AudicaModding
                 songSelect       = GameObject.FindObjectOfType<SongSelect>();
                 songListControls = GameObject.FindObjectOfType<SongListControls>();
 
-                CreateSongRequestFilterButton();
+                if (!SongRequests.hasCompatibleSongBrowser) // song browser integration does this automatically
+                    CreateSongRequestFilterButton();
                 CreateSongRequestSkipButton();
             }
         }
@@ -47,10 +58,19 @@ namespace AudicaModding
 
         public static void UpdateButtonText()
         {
-            if (filterSongRequestsButton == null)
-                return;
-
-            TextMeshPro buttonText = filterSongRequestsButton.GetComponentInChildren<TextMeshPro>();
+            TextMeshPro buttonText = null;
+            if (SongRequests.hasCompatibleSongBrowser)
+            {
+                buttonText = getFilter()?.ButtonText;
+                if (buttonText == null)
+                    return;
+            }
+            else
+            {
+                if (filterSongRequestsButton == null)
+                    return;
+                buttonText = filterSongRequestsButton.GetComponentInChildren<TextMeshPro>();
+            }
 
             if (SongRequests.requestList.Count == 0)
             {
@@ -89,7 +109,7 @@ namespace AudicaModding
 
         public static void UpdateFilter()
         {
-            if (requestFilterActive)
+            if ((SongRequests.hasCompatibleSongBrowser && getFilter().IsActive) || requestFilterActive)
                 songSelect?.ShowSongList();
         }
 
@@ -156,6 +176,17 @@ namespace AudicaModding
                                                   skipButtonPos, skipButtonScale);
 
             skipSongRequestsButton.SetActive(isSkipButtonActive);
+        }
+
+        private static bool ApplyFilter(Il2CppSystem.Collections.Generic.List<string> result)
+        {
+            result.Clear();
+
+            foreach (string songID in SongRequests.requestList)
+            {
+                result.Add(songID);
+            }
+            return true;
         }
 
         private static void OnFilterSongRequestsShot()
