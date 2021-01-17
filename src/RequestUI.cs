@@ -7,7 +7,6 @@ namespace AudicaModding
     internal static class RequestUI
     {
         public static bool requestFilterActive = false;
-        public static bool firstInit = true;
 
         private static bool isSkipButtonActive = false;
 
@@ -36,10 +35,8 @@ namespace AudicaModding
 
         public static void Initialize()
         {
-            if (firstInit)
+            if (songListControls == null)
             {
-                firstInit = false;
-
                 songSelect       = GameObject.FindObjectOfType<SongSelect>();
                 songListControls = GameObject.FindObjectOfType<SongListControls>();
 

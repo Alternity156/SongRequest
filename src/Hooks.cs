@@ -114,7 +114,6 @@ namespace AudicaModding
         {
             private static void Postfix(AudioDriver __instance)
             {
-                RequestUI.firstInit = true;
                 foreach (string str in SongRequests.requestList.ToList())
                 {
                     if (str == SongRequests.selectedSong.songID)
