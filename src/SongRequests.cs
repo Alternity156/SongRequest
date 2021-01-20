@@ -54,7 +54,7 @@ namespace AudicaModding
                 int major = int.Parse(versionInfo[0]);
                 int minor = int.Parse(versionInfo[1]);
                 int patch = int.Parse(versionInfo[2]);
-                if (major > 2 || (major == 2 && minor >= 3 && patch >= 1))
+                if (major > 2 || (major == 2 && minor >= 3 && patch >= 2))
                     return true;
             }
             return false;

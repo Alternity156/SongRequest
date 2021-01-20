@@ -38,7 +38,7 @@ namespace AudicaModding
         // if compatible version of song browser is available, use song browser's filter panel
         public static void Register()
         {
-            getFilter = FilterPanel.RegisterFilter("requests", "Song Requests",
+            getFilter = FilterPanel.RegisterFilter("requests", true, "Song Requests",
                                                    ShowAdditionalGUI, HideAdditonalGUI,
                                                    ApplyFilter);
         }
