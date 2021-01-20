@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace AudicaModding
 {
@@ -25,10 +26,12 @@ namespace AudicaModding
             string separator = ":";
             string tagSeparator = ";";
 
-            string tags = rawMsg.Split(separator.ToCharArray())[0];
+            // pre-process message, could contain flags that mess with the separators
+            string[] components = Regex.Replace(rawMsg, "flags=(.*);", "").Split(separator.ToCharArray());
 
-            User    = rawMsg.Split(separator.ToCharArray())[1];
-            Message = rawMsg.Split(separator.ToCharArray())[2];
+            string tags = components[0];
+            User        = components[1];
+            Message     = string.Join(":", components, 2, components.Length - 2);
 
             foreach (string str in tags.Split(tagSeparator.ToCharArray()).ToList())
             {
