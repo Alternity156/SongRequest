@@ -116,7 +116,7 @@ namespace AudicaModding
             // update 
             if (SongRequests.hasCompatibleSongBrowser && downloadMissingButton != null)
             {
-                if (SongRequests.activeWebSearchCount > 0)
+                if (SongRequests.GetActiveWebSearchCount() > 0)
                 {
                     downloadButtonText.text = "Processing...";
                     downloadGunButton.SetInteractable(false);
@@ -294,8 +294,6 @@ namespace AudicaModding
             {
                 queuedDownloadCount++;
                 MelonLoader.MelonCoroutines.Start(SongDownloader.DownloadSong(((Song)SongRequests.missingSongs[id]).download_url, OnDownloadComplete));
-                SongRequests.requestQueue.Add(((Song)SongRequests.missingSongs[id]).title);
-                SongRequests.missingSongs.Remove(id);
                 yield return null;
             }
         }
