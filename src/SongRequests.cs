@@ -62,7 +62,7 @@ namespace AudicaModding
                 int major = int.Parse(versionInfo[0]);
                 int minor = int.Parse(versionInfo[1]);
                 int patch = int.Parse(versionInfo[2]);
-                if (major > 2 || (major == 2 && minor >= 3 && patch >= 2))
+                if (major > 2 || (major == 2 && (minor > 3 || minor == 3 && patch >= 2)))
                     return true;
             }
             return false;
@@ -308,26 +308,26 @@ namespace AudicaModding
             {
                 Artist    = null;
                 Mapper    = null;
-                FullQuery = query;
+                FullQuery = query.ToLowerInvariant();
 
-                string modifiedQuery = query + "-endQuery";
-                if (query.Contains("-artist"))
+                string modifiedQuery = FullQuery + "-endQuery";
+                if (FullQuery.Contains("-artist"))
                 {
-                    // match everything from -artist to the next occurrence of -mapper, -artist or -endQuery
-                    Match m = Regex.Match(modifiedQuery, "-artist.*?(?=-mapper|-artist|-endQuery)");
-                    query = query.Replace(m.Value, ""); // remove artist part from song title
-                    Artist = m.Value.Replace("-artist", "").Trim().ToLowerInvariant();
-                    Artist = Artist.Replace(" ", "");
+                    // match everything from -artist to the next occurrence of -mapper or -endQuery
+                    Match m   = Regex.Match(modifiedQuery, "-artist.*?(?=-mapper|-endQuery)");
+                    FullQuery = FullQuery.Replace(m.Value, ""); // remove artist part from song title
+                    Artist    = m.Value.Replace("-artist", "").Trim();
+                    Artist    = Artist.Replace(" ", "");
                 }
-                if (query.Contains("-mapper"))
+                if (FullQuery.Contains("-mapper"))
                 {
-                    // match everything from -mapper to the next occurrence of -mapper, -artist or -endQuery
-                    Match m = Regex.Match(modifiedQuery, "-mapper.*?(?=-mapper|-artist|-endQuery)");
-                    query = query.Replace(m.Value, ""); // remove mapper part from song title
-                    Mapper = m.Value.Replace("-mapper", "").Trim().ToLowerInvariant();
-                    Mapper = Mapper.Replace(" ", "");
+                    // match everything from -mapper to the next occurrence of -artist or -endQuery
+                    Match m   = Regex.Match(modifiedQuery, "-mapper.*?(?=-artist|-endQuery)");
+                    FullQuery = FullQuery.Replace(m.Value, ""); // remove mapper part from song title
+                    Mapper    = m.Value.Replace("-mapper", "").Trim();
+                    Mapper    = Mapper.Replace(" ", "");
                 }
-                Title = query.Trim().ToLowerInvariant();
+                Title = FullQuery.Trim();
             }
 
             public string Title { get; private set; }
