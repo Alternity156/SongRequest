@@ -185,6 +185,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="src\Hooks.cs" />
+    <Compile Include="src\MissingSongsUI.cs" />
     <Compile Include="src\RequestUI.cs" />
     <Compile Include="src\ParsedTwitchMessage.cs" />
     <Compile Include="src\SongRequests.cs" />

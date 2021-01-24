@@ -33,8 +33,6 @@ namespace AudicaModding
 
         private static System.Func<object> getFilter = null; // for use with song browser integration, actually of FilterPanel.Filter
 
-        private static int queuedDownloadCount = 0;
-
         // if compatible version of song browser is available, use song browser's filter panel
         public static void Register()
         {
@@ -123,12 +121,12 @@ namespace AudicaModding
                 }
                 else if (SongRequests.missingSongs.Count > 0)
                 {
-                    downloadButtonText.text = "<color=green>Download missing</color>";
+                    downloadButtonText.text = $"<color=green>Download {SongRequests.missingSongs.Count} missing song(s)</color>";
                     downloadGunButton.SetInteractable(true);
                 }
                 else
                 {
-                    downloadButtonText.text = "Download missing";
+                    downloadButtonText.text = "No songs missing";
                     downloadGunButton.SetInteractable(false);
                 }
             }
@@ -281,30 +279,9 @@ namespace AudicaModding
 
         private static void OnDownloadMissingShot()
         {
-            MenuState.I.GoToMainPage();
-            KataConfig.I.CreateDebugText("Downloading missing songs...", new Vector3(0f, -1f, 5f), 5f, null, false, 0.2f);
-            MelonLoader.MelonCoroutines.Start(DownloadMissing());
-        }
-
-        private static System.Collections.IEnumerator DownloadMissing()
-        {
-            yield return new WaitForSeconds(0.5f);
-            List<string> ids = new List<string>(SongRequests.missingSongs.Keys);
-            foreach (string id in ids)
-            {
-                queuedDownloadCount++;
-                MelonLoader.MelonCoroutines.Start(SongDownloader.DownloadSong(((Song)SongRequests.missingSongs[id]).download_url, OnDownloadComplete));
-                yield return null;
-            }
-        }
-
-        private static void OnDownloadComplete()
-        {
-            queuedDownloadCount--;
-            if (queuedDownloadCount == 0) // only refresh once all downloads are done
-            {
-                SongBrowser.ReloadSongList();
-            }
+            MissingSongsUI.lookingAtMissingSongs = true;
+            MenuState.I.GoToSettingsPage();
+            // moves to search page next via Hooks.PatchShowOptionsPage.Postfix()
         }
 
         private static void OnSkipSongRequestShot()

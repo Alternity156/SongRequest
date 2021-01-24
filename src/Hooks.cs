@@ -8,6 +8,8 @@ namespace AudicaModding
 {
     internal static class Hooks
     {
+        private static int buttonCount = 0;
+
         [HarmonyPatch(typeof(TwitchChatStream), "write_chat_msg", new Type[] { typeof(string) })]
         private static class PatchWriteChatMsg
         {
@@ -120,6 +122,50 @@ namespace AudicaModding
                     {
                         SongRequests.requestList.Remove(str);
                     }
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(OptionsMenu), "ShowPage", new Type[] { typeof(OptionsMenu.Page) })]
+        private static class PatchShowOptionsPage
+        {
+            private static void Prefix(OptionsMenu __instance, OptionsMenu.Page page)
+            {
+                buttonCount = 0;
+            }
+            private static void Postfix(InGameUI __instance, OptionsMenu.Page page)
+            {
+                if (page == OptionsMenu.Page.Main && MissingSongsUI.lookingAtMissingSongs)
+                {
+                    MissingSongsUI.GoToMissingSongsPage();
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(OptionsMenu), "BackOut", new Type[0])]
+        private static class Backout
+        {
+            private static bool Prefix(OptionsMenu __instance)
+            {
+                // should always be on the missing songs page when this happens
+                if (MissingSongsUI.lookingAtMissingSongs)
+                {
+                    MissingSongsUI.Cancel();
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        [HarmonyPatch(typeof(OptionsMenu), "AddButton", new Type[] { typeof(int), typeof(string), typeof(OptionsMenuButton.SelectedActionDelegate), typeof(OptionsMenuButton.IsCheckedDelegate), typeof(string), typeof(OptionsMenuButton), })]
+        private static class AddButtonButton
+        {
+            private static void Postfix(OptionsMenu __instance, int col, string label, OptionsMenuButton.SelectedActionDelegate onSelected, OptionsMenuButton.IsCheckedDelegate isChecked)
+            {
+                if (__instance.mPage == OptionsMenu.Page.Main)
+                {
+                    if (buttonCount == 0) // only do this once, bit of a hack
+                        MissingSongsUI.SetMenu(__instance);
                 }
             }
         }
