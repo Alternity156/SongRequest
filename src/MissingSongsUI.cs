@@ -72,7 +72,7 @@ namespace AudicaModding
 			if (needsSongListRefresh)
 			{
 				MenuState.I.GoToMainPage();
-				SongBrowser.ReloadSongList();
+				SongBrowser.ReloadSongList(false);
 			}
 			else
 			{
@@ -197,7 +197,7 @@ namespace AudicaModding
 			downloadCount--;
 			if (downloadCount == 0)
 			{
-				SongBrowser.ReloadSongList();
+				SongBrowser.ReloadSongList(false);
 			}
 		}
 

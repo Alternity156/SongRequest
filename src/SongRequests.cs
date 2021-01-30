@@ -14,7 +14,7 @@ namespace AudicaModding
             public const string Name = "SongRequest";  // Name of the Mod.  (MUST BE SET)
             public const string Author = "Alternity"; // Author of the Mod.  (Set as null if none)
             public const string Company = null; // Company that made the Mod.  (Set as null if none)
-            public const string Version = "1.1.0"; // Version of the Mod.  (MUST BE SET)
+            public const string Version = "1.2.0"; // Version of the Mod.  (MUST BE SET)
             public const string DownloadLink = null; // Download Link for the Mod.  (Set as null if none)
         }
 
@@ -62,7 +62,7 @@ namespace AudicaModding
                 int major = int.Parse(versionInfo[0]);
                 int minor = int.Parse(versionInfo[1]);
                 int patch = int.Parse(versionInfo[2]);
-                if (major > 2 || (major == 2 && (minor > 3 || minor == 3 && patch >= 2)))
+                if (major > 2 || (major == 2 && (minor > 4 || minor == 4 && patch >= 0)))
                     return true;
             }
             return false;
@@ -92,7 +92,7 @@ namespace AudicaModding
             bool              foundBetter = false;
             foundExactMatch               = false;
 
-            for (int i = 0; i < SongList.I.songs.Count - 1; i++)
+            for (int i = 0; i < SongList.I.songs.Count; i++)
             {
                 SongList.SongData currentSong = SongList.I.songs[i];
                 if ((data.Artist == null || currentSong.artist.ToLowerInvariant().Replace(" ", "").Contains(data.Artist)) &&
