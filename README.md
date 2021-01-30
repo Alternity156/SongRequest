@@ -26,4 +26,4 @@ Note that search is not case sensitive, so `!asr Monster` and `!asr MONSTER` giv
   * Scroll to the *Twitch Chat View* section
   * Enable *Twitch Chat View*
   * Enter the name of your channel in *Twitch Channel:*
-* Optionally: Install the [SongBrowser mod](https://github.com/octoberU/SongBrowser) version 2.3.2 or newer to enable requests for custom songs that haven't been downloaded yet
+* Optionally: Install the [SongBrowser mod](https://github.com/octoberU/SongBrowser) version 2.4.0 or newer to enable requests for custom songs that haven't been downloaded yet
